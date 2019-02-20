@@ -1,0 +1,75 @@
+Разворачиваем проект из git для разработки на локальной машине под win10
+
+1) Устанавливаем Python >= 3.6
+    - не забываем при установке поместить в path
+
+1.1) Устанавливаем pipenv
+    при работе в cmder(консоли) пропадают баги
+    с отсутствием подсветки команд и повтором команд на стрелках
+
+2) Устанавливаем postgres >= 11 локально:
+    - создаем пользователя
+    - создаем базу
+    {
+        create database mydb;
+        create user myuser with encrypted password 'mypass';
+        grant all privileges on database mydb to myuser;
+        alter database mydb owner to myuser;
+    }
+
+3) Создаем корневую папку проекта, переходим в нее из командной строки
+
+4) Пуллим реп из git:
+    - git init
+    - git remote add origin URL
+    - git pull origin <branch name>
+    - git checkout <branch name>
+
+5) Создаем и активируем виртуальное окружение (ВО):
+    - pipenv --python <python version>
+    - pipenv shell
+    - pipenv install
+    - pipenv install --dev
+    *далее все действия производить из ВО
+
+7) Копируем файл .env(renameToDotEnv) в ..\source\
+
+8) Переходим в директорию source и создаем django-проект:
+    - cd source
+    - django-admin.exe startproject project .
+    *точка для создания проекта в текущей директории
+
+9) Перемещаем директорию settings в source\project
+
+10) Копируем secret_key из файла project\settings.py в env и удаляем
+
+11) *в файле .env в соответствующих переменных задаем значения полученные при создании локальной БД postgres
+
+12) Создаем django-приложение:
+    python manage.py startapp my_app
+
+13) Добавляем приложения в base.py:
+        INSTALLED_APPS = [
+            ...,
+            ...,
+            'rest_framework',
+            'my_app',
+            'etc.'
+        ]
+
+14) Указываем путь к файлу настроек:
+    в source/manage.py и в source/project/wsgi.py
+        меняем строку:
+        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'project.settings')
+        на:
+        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'project.settings.dev')
+
+15) Применяем миграции перед запуском тестового сервера:
+    python manage.py migrate
+
+16) Запускаем сервер с настройками для разработки:
+    (если указали определенные файлы настроек в пункте 14 - то необязательно)
+    python manage.py runserver --settings=project.settings.dev
+
+17) Создаем 'суперюзера':
+    python manage.py createsuperuser
